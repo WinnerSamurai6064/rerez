@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../app/app_state.dart';
 import '../app/theme.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/credits_badge.dart';
 import '../widgets/footer_text.dart';
 import '../widgets/glass_panel.dart';
@@ -48,7 +49,11 @@ class WelcomeScreen extends StatelessWidget {
                     alignment: Alignment.centerRight,
                     child: CreditsBadge(credits: credits),
                   ),
-                  const SizedBox(height: 64),
+                  const SizedBox(height: 46),
+                  const Center(
+                    child: AppLogo(size: 92),
+                  ),
+                  const SizedBox(height: 22),
                   Text(
                     'Rerez',
                     textAlign: TextAlign.center,
