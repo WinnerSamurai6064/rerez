@@ -6,21 +6,16 @@ import 'package:image_picker/image_picker.dart';
 import '../models/generation_settings.dart';
 import '../models/rerez_user.dart';
 import '../services/api_image_service.dart';
-import '../services/mock_auth_service.dart';
-import '../services/mock_image_service.dart';
 
 class AppState extends ChangeNotifier {
   AppState({
-    MockAuthService? authService,
-    MockImageService? imageService,
     ApiImageService? apiImageService,
-  })  : _authService = authService ?? MockAuthService(),
-        _imageService = imageService ?? MockImageService(),
-        _apiImageService = apiImageService ?? ApiImageService();
+    ImagePicker? imagePicker,
+  })  : _apiImageService = apiImageService ?? ApiImageService(),
+        _imagePicker = imagePicker ?? ImagePicker();
 
-  final MockAuthService _authService;
-  final MockImageService _imageService;
   final ApiImageService _apiImageService;
+  final ImagePicker _imagePicker;
 
   RerezUser _user = RerezUser.guest();
   int _credits = 2;
@@ -75,18 +70,21 @@ class AppState extends ChangeNotifier {
   }) async {
     _setMessage(null);
 
-    final result = await _authService.login(
-      username: username,
-      password: password,
-    );
+    final cleanedUsername = _cleanUsername(username);
+    final usernameError = validateUsername(cleanedUsername);
+    final passwordError = validatePassword(password);
 
-    if (!result.isSuccess || result.user == null) {
-      _setMessage(result.message);
+    if (usernameError != null || passwordError != null) {
+      _setMessage(usernameError ?? passwordError);
       return false;
     }
 
-    _user = result.user!;
+    _user = RerezUser.loggedIn(
+      username: cleanedUsername,
+      provider: 'username',
+    );
     _credits = 20;
+
     _setMessage(null);
     notifyListeners();
     return true;
@@ -98,18 +96,21 @@ class AppState extends ChangeNotifier {
   }) async {
     _setMessage(null);
 
-    final result = await _authService.signUp(
-      username: username,
-      password: password,
-    );
+    final cleanedUsername = _cleanUsername(username);
+    final usernameError = validateUsername(cleanedUsername);
+    final passwordError = validatePassword(password);
 
-    if (!result.isSuccess || result.user == null) {
-      _setMessage(result.message);
+    if (usernameError != null || passwordError != null) {
+      _setMessage(usernameError ?? passwordError);
       return false;
     }
 
-    _user = result.user!;
+    _user = RerezUser.loggedIn(
+      username: cleanedUsername,
+      provider: 'username',
+    );
     _credits = 20;
+
     _setMessage(null);
     notifyListeners();
     return true;
@@ -118,15 +119,12 @@ class AppState extends ChangeNotifier {
   Future<bool> continueWithGoogle() async {
     _setMessage(null);
 
-    final result = await _authService.continueWithGoogle();
-
-    if (!result.isSuccess || result.user == null) {
-      _setMessage(result.message);
-      return false;
-    }
-
-    _user = result.user!;
+    _user = RerezUser.loggedIn(
+      username: 'Google User',
+      provider: 'google',
+    );
     _credits = 20;
+
     _setMessage(null);
     notifyListeners();
     return true;
@@ -143,7 +141,10 @@ class AppState extends ChangeNotifier {
   Future<void> pickImage() async {
     _setMessage(null);
 
-    final pickedImage = await _imageService.pickImage();
+    final pickedImage = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 100,
+    );
 
     if (pickedImage == null) {
       return;
@@ -270,6 +271,59 @@ class AppState extends ChangeNotifier {
     clearResultOnly();
     _settings = const GenerationSettings();
     _isGenerating = false;
+  }
+
+  String? validateUsername(String username) {
+    final cleaned = _cleanUsername(username);
+
+    if (cleaned.isEmpty) return 'Enter a username.';
+    if (cleaned.length < 3) return 'Username must be at least 3 characters.';
+    if (cleaned.length > 24) return 'Username must be 24 characters or less.';
+
+    if (!RegExp(r'^[a-zA-Z0-9._-]+$').hasMatch(cleaned)) {
+      return 'Use only letters, numbers, dots, dashes, or underscores.';
+    }
+
+    return null;
+  }
+
+  String? validatePassword(String password) {
+    final value = password.trim();
+
+    if (value.isEmpty) return 'Enter a password.';
+    if (value.length < 8) return 'Password must be at least 8 characters.';
+    if (_looksSuspicious(value)) return 'Use a safer password.';
+
+    return null;
+  }
+
+  String _cleanUsername(String value) {
+    return value.trim();
+  }
+
+  bool _looksSuspicious(String value) {
+    final lower = value.toLowerCase();
+
+    const patterns = [
+      '<script',
+      '</script',
+      'javascript:',
+      'onerror=',
+      'onload=',
+      'select ',
+      'insert ',
+      'update ',
+      'delete ',
+      'drop ',
+      'union ',
+      '--',
+      ';--',
+      '/*',
+      '*/',
+      '../',
+    ];
+
+    return patterns.any(lower.contains);
   }
 
   void _setMessage(String? value) {
