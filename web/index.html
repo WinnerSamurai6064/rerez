@@ -11,7 +11,6 @@
     />
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <meta name="theme-color" content="#000000" />
 
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -19,6 +18,7 @@
     <meta name="apple-mobile-web-app-title" content="Rerez" />
 
     <link rel="manifest" href="manifest.json" />
+    <link rel="preload" href="assets/assets/images/rerez_logo.png" as="image" />
 
     <title>Rerez</title>
 
@@ -30,7 +30,6 @@
         --deep-orange: #ff4f0a;
         --white: #f7fbff;
         --muted: rgba(247, 251, 255, 0.68);
-        --glass: rgba(255, 255, 255, 0.08);
         --border: rgba(255, 255, 255, 0.16);
       }
 
@@ -106,19 +105,31 @@
       }
 
       .loader-logo {
-        width: 86px;
-        height: 86px;
+        width: 92px;
+        height: 92px;
         margin: 0 auto 18px;
         border-radius: 28px;
-        display: grid;
+        object-fit: cover;
+        display: block;
+        box-shadow:
+          0 18px 38px rgba(255, 122, 26, 0.26),
+          0 0 42px rgba(255, 122, 26, 0.18);
+        background: linear-gradient(135deg, var(--orange), var(--deep-orange));
+      }
+
+      .loader-logo-fallback {
+        width: 92px;
+        height: 92px;
+        margin: 0 auto 18px;
+        border-radius: 28px;
+        display: none;
         place-items: center;
-        background:
-          linear-gradient(135deg, var(--orange), var(--deep-orange));
+        background: linear-gradient(135deg, var(--orange), var(--deep-orange));
         box-shadow:
           0 18px 38px rgba(255, 122, 26, 0.26),
           0 0 42px rgba(255, 122, 26, 0.18);
         color: white;
-        font-size: 36px;
+        font-size: 38px;
         font-weight: 950;
         letter-spacing: -0.08em;
       }
@@ -174,13 +185,22 @@
   <body>
     <div id="loading-screen">
       <div class="loader-card">
-        <div class="loader-logo">R</div>
+        <img
+          class="loader-logo"
+          src="assets/assets/images/rerez_logo.png"
+          alt="Rerez"
+          onerror="this.style.display='none'; document.getElementById('loader-logo-fallback').style.display='grid';"
+        />
+        <div id="loader-logo-fallback" class="loader-logo-fallback">R</div>
+
         <h1 class="loader-title">Rerez</h1>
         <p class="loader-subtitle">Free image upscaling platform</p>
         <div class="loader-bar"></div>
       </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <script src="rerez_onnx_bridge.js"></script>
     <script src="flutter_bootstrap.js" async></script>
 
     <script>
