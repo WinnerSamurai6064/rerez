@@ -83,13 +83,15 @@ class ApiImageService {
         'filter': settings.filter.label,
         'saveFormat': settings.saveFormat.label,
         'platform': 'flutter-web',
+        'deviceTier': 'web',
+        'usedBackendFallback': 'true',
       });
 
       request.files.add(
         http.MultipartFile.fromBytes(
           'image',
           imageBytes,
-          filename: filename,
+          filename: _safeFilename(filename),
           contentType: _contentTypeForFilename(filename),
         ),
       );
@@ -101,7 +103,8 @@ class ApiImageService {
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         return ApiGenerationResult.failure(
-          decoded?['error']?.toString() ?? 'Generation failed.',
+          decoded?['error']?.toString() ??
+              'Backend error ${response.statusCode}: ${response.body}',
         );
       }
 
@@ -118,7 +121,11 @@ class ApiImageService {
       Uint8List? resultBytes;
 
       if (previewUrl != null && previewUrl.isNotEmpty) {
-        resultBytes = await _fetchResult(pathOrUrl: previewUrl);
+        try {
+          resultBytes = await _fetchResult(pathOrUrl: previewUrl);
+        } catch (_) {
+          resultBytes = null;
+        }
       }
 
       final output = decoded['output'];
@@ -137,9 +144,9 @@ class ApiImageService {
         format: output?['format']?.toString(),
         colorProfile: output?['colorProfile']?.toString(),
       );
-    } catch (_) {
+    } catch (error) {
       return ApiGenerationResult.failure(
-        'Could not reach the backend.',
+        'Could not reach backend: $error',
       );
     }
   }
@@ -163,7 +170,7 @@ class ApiImageService {
     );
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Could not load result image.');
+      throw Exception('Could not load result image: ${response.statusCode}');
     }
 
     return response.bodyBytes;
@@ -206,6 +213,20 @@ class ApiImageService {
     }
 
     return MediaType('image', 'png');
+  }
+
+  String _safeFilename(String filename) {
+    final cleaned = filename.trim();
+
+    if (cleaned.isEmpty) {
+      return 'rerez-image.png';
+    }
+
+    if (cleaned.contains('.')) {
+      return cleaned;
+    }
+
+    return '$cleaned.png';
   }
 
   Map<String, dynamic>? _decodeJson(String value) {
