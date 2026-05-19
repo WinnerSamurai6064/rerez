@@ -1,5 +1,6 @@
 (function () {
-  const MODEL_URL = 'assets/assets/models/real_esrgan_general_x4v3.onnx';
+  const MODEL_URL =
+    'https://huggingface.co/spaces/EricaLuvGemma/Rerez/resolve/main/models/Real-ESRGAN_x2plus.onnx';
 
   let sessionPromise = null;
 
@@ -48,7 +49,7 @@
         width: outputCanvas.width,
         height: outputCanvas.height,
         method: 'Real-ESRGAN',
-        scale: 'x4',
+        scale: 'x2',
         format: options.format || 'PNG',
       };
     } catch (error) {
@@ -193,9 +194,8 @@
   }
 
   function canvasToBlob(canvas, format) {
-    const mimeType = String(format).toUpperCase() === 'JPG'
-      ? 'image/jpeg'
-      : 'image/png';
+    const mimeType =
+      String(format).toUpperCase() === 'JPG' ? 'image/jpeg' : 'image/png';
 
     const quality = mimeType === 'image/jpeg' ? 0.92 : undefined;
 
