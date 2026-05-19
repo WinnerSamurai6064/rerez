@@ -65,7 +65,6 @@ class ApiImageService {
     required Uint8List imageBytes,
     required String filename,
     required GenerationSettings settings,
-    String? testPassword,
   }) async {
     try {
       final uri = Uri.parse('$backendBaseUrl/jobs/generate');
@@ -74,8 +73,6 @@ class ApiImageService {
 
       request.headers.addAll({
         'X-Rerez-Client': 'flutter-web',
-        if (testPassword != null && testPassword.isNotEmpty)
-          'X-Rerez-Test-Password': testPassword,
       });
 
       request.fields.addAll({
@@ -118,10 +115,7 @@ class ApiImageService {
       Uint8List? resultBytes;
 
       if (previewUrl != null && previewUrl.isNotEmpty) {
-        resultBytes = await _fetchProtectedResult(
-          pathOrUrl: previewUrl,
-          testPassword: testPassword,
-        );
+        resultBytes = await _fetchResult(pathOrUrl: previewUrl);
       }
 
       final output = decoded['output'];
@@ -149,17 +143,12 @@ class ApiImageService {
 
   Future<Uint8List> downloadResult({
     required String pathOrUrl,
-    String? testPassword,
   }) {
-    return _fetchProtectedResult(
-      pathOrUrl: pathOrUrl,
-      testPassword: testPassword,
-    );
+    return _fetchResult(pathOrUrl: pathOrUrl);
   }
 
-  Future<Uint8List> _fetchProtectedResult({
+  Future<Uint8List> _fetchResult({
     required String pathOrUrl,
-    String? testPassword,
   }) async {
     final uri = _resolveBackendUri(pathOrUrl);
 
@@ -167,8 +156,6 @@ class ApiImageService {
       uri,
       headers: {
         'X-Rerez-Client': 'flutter-web',
-        if (testPassword != null && testPassword.isNotEmpty)
-          'X-Rerez-Test-Password': testPassword,
       },
     );
 
