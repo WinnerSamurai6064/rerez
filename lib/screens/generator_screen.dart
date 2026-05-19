@@ -12,8 +12,29 @@ import '../widgets/orange_button.dart';
 import 'auth_screen.dart';
 import 'result_screen.dart';
 
-class GeneratorScreen extends StatelessWidget {
+class GeneratorScreen extends StatefulWidget {
   const GeneratorScreen({super.key});
+
+  @override
+  State<GeneratorScreen> createState() => _GeneratorScreenState();
+}
+
+class _GeneratorScreenState extends State<GeneratorScreen> {
+  late final TextEditingController _passwordController;
+
+  @override
+  void initState() {
+    super.initState();
+    _passwordController = TextEditingController(
+      text: context.read<AppState>().testPassword,
+    );
+  }
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _generate(BuildContext context) async {
     final appState = context.read<AppState>();
@@ -22,6 +43,7 @@ class GeneratorScreen extends StatelessWidget {
     if (!context.mounted) return;
 
     final message = appState.message;
+
     if (!success) {
       if (message != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -105,6 +127,27 @@ class GeneratorScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                   ],
+                  GlassPanel(
+                    padding: const EdgeInsets.all(16),
+                    borderRadius: 22,
+                    child: TextField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      cursorColor: RerezTheme.orange,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: RerezTheme.neonWhite,
+                            fontWeight: FontWeight.w700,
+                          ),
+                      onChanged: appState.updateTestPassword,
+                      decoration: const InputDecoration(
+                        labelText: 'Backend Password',
+                        hintText: 'Enter backend test password',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   ImagePickerBox(
                     imageBytes: appState.selectedImageBytes,
                     onSelectImage: appState.pickImage,
