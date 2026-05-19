@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../app/app_state.dart';
 import '../app/theme.dart';
 import '../services/mock_auth_service.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/auth_text_field.dart';
 import '../widgets/glass_panel.dart';
 import '../widgets/orange_button.dart';
@@ -94,7 +95,9 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void _clearFieldErrors() {
-    if (_usernameError == null && _passwordError == null && _formMessage == null) {
+    if (_usernameError == null &&
+        _passwordError == null &&
+        _formMessage == null) {
       return;
     }
 
@@ -124,6 +127,19 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    const Center(
+                      child: AppLogo(size: 74),
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      'Rerez',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                            color: RerezTheme.neonWhite,
+                            fontWeight: FontWeight.w900,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
                     Text(
                       'Free image upscaling platform',
                       textAlign: TextAlign.center,
