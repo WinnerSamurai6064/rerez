@@ -16,9 +16,20 @@ class ResultScreen extends StatelessWidget {
   }
 
   void _save(BuildContext context) {
+    final appState = context.read<AppState>();
+
+    if (appState.downloadUrl == null && appState.resultImageBytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No result available to save.'),
+        ),
+      );
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Save will be connected later.'),
+        content: Text('Download is ready from the backend result.'),
       ),
     );
   }
@@ -27,7 +38,9 @@ class ResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
     final settings = appState.settings;
-    final imageBytes = appState.selectedImageBytes;
+
+    final beforeBytes = appState.selectedImageBytes;
+    final afterBytes = appState.resultImageBytes;
 
     return Scaffold(
       appBar: AppBar(
@@ -61,12 +74,12 @@ class ResultScreen extends StatelessWidget {
 
                         final before = _ResultImageCard(
                           title: 'Before',
-                          imageBytes: imageBytes,
+                          imageBytes: beforeBytes,
                         );
 
                         final after = _ResultImageCard(
                           title: 'After',
-                          imageBytes: imageBytes,
+                          imageBytes: afterBytes,
                         );
 
                         if (isWide) {
@@ -97,15 +110,18 @@ class ResultScreen extends StatelessWidget {
                       children: [
                         _SettingRow(
                           label: 'Scale',
-                          value: settings.scale.label,
+                          value: appState.resultScale != null
+                              ? '${appState.resultScale}x'
+                              : settings.scale.label,
                         ),
                         _SettingRow(
                           label: 'Method',
-                          value: settings.method.label,
+                          value: appState.resultMethod ?? settings.method.label,
                         ),
                         _SettingRow(
                           label: 'Color Profile',
-                          value: settings.colorProfile.label,
+                          value: appState.resultColorProfile ??
+                              settings.colorProfile.label,
                         ),
                         _SettingRow(
                           label: 'Filters',
@@ -113,7 +129,14 @@ class ResultScreen extends StatelessWidget {
                         ),
                         _SettingRow(
                           label: 'Save As',
-                          value: settings.saveFormat.label,
+                          value: appState.resultFormat ?? settings.saveFormat.label,
+                        ),
+                        _SettingRow(
+                          label: 'Size',
+                          value: _sizeText(
+                            appState.resultWidth,
+                            appState.resultHeight,
+                          ),
                           showDivider: false,
                         ),
                       ],
@@ -136,6 +159,14 @@ class ResultScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _sizeText(int? width, int? height) {
+    if (width == null || height == null) {
+      return 'Ready';
+    }
+
+    return '$width×$height';
   }
 }
 
