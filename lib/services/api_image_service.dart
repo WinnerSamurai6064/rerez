@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import '../models/generation_settings.dart';
 
@@ -81,6 +82,7 @@ class ApiImageService {
         'colorProfile': settings.colorProfile.label,
         'filter': settings.filter.label,
         'saveFormat': settings.saveFormat.label,
+        'platform': 'flutter-web',
       });
 
       request.files.add(
@@ -88,6 +90,7 @@ class ApiImageService {
           'image',
           imageBytes,
           filename: filename,
+          contentType: _contentTypeForFilename(filename),
         ),
       );
 
@@ -173,6 +176,36 @@ class ApiImageService {
 
     final normalizedPath = pathOrUrl.startsWith('/') ? pathOrUrl : '/$pathOrUrl';
     return Uri.parse('$backendBaseUrl$normalizedPath');
+  }
+
+  MediaType _contentTypeForFilename(String filename) {
+    final lower = filename.toLowerCase();
+
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
+      return MediaType('image', 'jpeg');
+    }
+
+    if (lower.endsWith('.png')) {
+      return MediaType('image', 'png');
+    }
+
+    if (lower.endsWith('.webp')) {
+      return MediaType('image', 'webp');
+    }
+
+    if (lower.endsWith('.gif')) {
+      return MediaType('image', 'gif');
+    }
+
+    if (lower.endsWith('.heic')) {
+      return MediaType('image', 'heic');
+    }
+
+    if (lower.endsWith('.heif')) {
+      return MediaType('image', 'heif');
+    }
+
+    return MediaType('image', 'png');
   }
 
   Map<String, dynamic>? _decodeJson(String value) {
