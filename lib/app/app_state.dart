@@ -43,10 +43,6 @@ class AppState extends ChangeNotifier {
   bool _isGenerating = false;
   String? _message;
 
-  // Temporary test password for protected Hugging Face tester/backend routes.
-  // Later, replace this with real auth/session token handling.
-  String _testPassword = '';
-
   RerezUser get user => _user;
   int get credits => _credits;
 
@@ -67,7 +63,6 @@ class AppState extends ChangeNotifier {
   GenerationSettings get settings => _settings;
   bool get isGenerating => _isGenerating;
   String? get message => _message;
-  String get testPassword => _testPassword;
 
   bool get isLoggedIn => _user.isLoggedIn;
   bool get hasSelectedImage => _selectedImageBytes != null;
@@ -169,11 +164,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateTestPassword(String value) {
-    _testPassword = value.trim();
-    notifyListeners();
-  }
-
   void updateSettings(GenerationSettings settings) {
     _settings = settings;
     notifyListeners();
@@ -217,11 +207,6 @@ class AppState extends ChangeNotifier {
       return false;
     }
 
-    if (_testPassword.isEmpty) {
-      _setMessage('Enter the backend test password.');
-      return false;
-    }
-
     _isGenerating = true;
     clearResultOnly();
     notifyListeners();
@@ -234,7 +219,6 @@ class AppState extends ChangeNotifier {
       imageBytes: _selectedImageBytes!,
       filename: filename,
       settings: _settings,
-      testPassword: _testPassword,
     );
 
     _isGenerating = false;
@@ -286,7 +270,6 @@ class AppState extends ChangeNotifier {
     clearResultOnly();
     _settings = const GenerationSettings();
     _isGenerating = false;
-    _testPassword = '';
   }
 
   void _setMessage(String? value) {
