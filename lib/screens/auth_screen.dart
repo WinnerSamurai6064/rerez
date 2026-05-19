@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../app/app_state.dart';
 import '../app/theme.dart';
-import '../services/mock_auth_service.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/auth_text_field.dart';
 import '../widgets/glass_panel.dart';
@@ -17,7 +16,6 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  final MockAuthService _validator = MockAuthService();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -82,8 +80,10 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   bool _validateForm() {
-    final usernameError = _validator.validateUsername(_usernameController.text);
-    final passwordError = _validator.validatePassword(_passwordController.text);
+    final appState = context.read<AppState>();
+
+    final usernameError = appState.validateUsername(_usernameController.text);
+    final passwordError = appState.validatePassword(_passwordController.text);
 
     setState(() {
       _usernameError = usernameError;
